@@ -5,6 +5,8 @@ const flash = require("connect-flash");
 const path = require("path");
 const fs = require("fs");
 const mongoose = require("mongoose"); 
+const cors = require("cors");
+app.use(cors()); // This allows your frontend to talk to this backend!
 
 // ============================================================
 // 🌱 DATABASE CONNECTION (Connects to MongoDB Atlas / Local)
