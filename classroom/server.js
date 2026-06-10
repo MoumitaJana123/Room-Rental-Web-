@@ -1,17 +1,17 @@
 const express = require("express");
 const app = express();
 const session = require("express-session");
-const MongoStore = require("connect-mongo"); // Production session storage
+const MongoStore = require("connect-mongo"); // For production session scaling
 const flash = require("connect-flash");
 const path = require("path");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 
-// Import Models
+// Import Your Models
 const User = require("./models/user.js");
 
-// Import Routers
+// Import Your App Routers
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
@@ -36,16 +36,15 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 app.use(express.urlencoded({ extended: true }));
-// Serves static assets from public (CSS, JS, Images)
-app.use(express.static(path.join(__dirname, "public"))); 
+app.use(express.static(path.join(__dirname, "public"))); // Serves your frontend CSS styles
 
-// Production session store using Mongo instead of volatile memory
+// Mongo Session Storage Strategy
 const store = MongoStore.create({
     mongoUrl: dbUrl,
     crypto: {
         secret: process.env.SESSION_SECRET || "mysupersecretstring"
     },
-    touchAfter: 24 * 3600, // 24 hours
+    touchAfter: 24 * 3600, // Syncs sessions once every 24 hours
 });
 
 const sessionOptions = {
@@ -54,7 +53,7 @@ const sessionOptions = {
   resave: false,
   saveUninitialized: true,
   cookie: {
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week expiration
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
     httpOnly: true,
   }
 };
@@ -63,7 +62,7 @@ app.use(session(sessionOptions));
 app.use(flash());
 
 // ============================================================
-// 🔐 PASSPORT AUTHENTICATION MIDDLEWARE
+// 🔐 PASSPORT CONFIGURATION
 // ============================================================
 app.use(passport.initialize());
 app.use(passport.session());
@@ -73,24 +72,24 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 // ============================================================
-// 🔔 GLOBAL RES.LOCALS MIDDLEWARE
+// 🔔 GLOBAL LOCAL VARIABLES MIDDLEWARE
 // ============================================================
 app.use((req, res, next) => {
   res.locals.successMsg = req.flash("success");
   res.locals.errorMsg = req.flash("error");
-  res.locals.currUser = req.user; // Exposes user session data cleanly to EJS templates
+  res.locals.currUser = req.user; // Lets your navbar know if a user is logged in
   next();
 });
 
 // ============================================================
-// 🛣️ ROUTE REGISTRATION (Mounting MVC Architecture)
+// 🛣️ MOUNT APPLICATION ROUTERS
 // ============================================================
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
 // ============================================================
-// 🚀 DYNAMIC PORT FOR RENDER DEPLOYMENT
+// 🚀 RUNNING ENVIRONMENT PORT
 // ============================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
