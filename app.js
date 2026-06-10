@@ -1,4 +1,4 @@
-require("./models/booking.js");
+//require("./models/booking.js");
 if (process.env.NODE_ENV != "production") {
     require('dotenv').config();
 }
