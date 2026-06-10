@@ -1,0 +1,136 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container mt-3 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+
+      <h4 class="mb-3 text-center">Create a New Listing</h4>
+
+      <form method="POST" action="/listings" novalidate class="needs-validation" 
+      enctype="multipart/form-data">
+
+        <!-- Title -->
+        <div class="mb-2">
+          <label class="form-label">Title</label>
+          <input 
+            name="listing[title]" 
+            placeholder="Add a catchy title"
+            type="text" 
+            class="form-control form-control-sm" 
+            required 
+          />
+        </div>
+         <div class="valid-feedback">Title looks good</div>
+        <!-- Description -->
+        <div class="mb-2">
+          <label class="form-label">Description</label>
+          <textarea 
+            name="listing[description]"
+            class="form-control form-control-sm" 
+            rows="2" 
+            required
+          ></textarea>
+           <div class="invalid-feedback">Please enter a short description</div>
+        </div>
+
+        <!-- Image Link -->
+        <!-- <div class="mb-2">
+          <label class="form-label">Image Link</label>
+          <input 
+            name="listing[image][url]" 
+            placeholder="Enter image URL"
+            type="text" 
+            class="form-control form-control-sm" 
+          />
+        </div> -->
+          <div class="mb-2">
+          <label class="form-label">Upload Listing Image </label>
+          <input name="image" type="file" class="form-control form-control-sm" required>
+        </div>
+        <!-- Price + Country -->
+        <div class="row">
+          <div class="mb-2 col-md-4">
+            <label class="form-label">Price</label>
+            <input 
+              name="listing[price]" 
+              placeholder="1200"
+              
+              class="form-control form-control-sm" 
+              required 
+            />
+             <div class="invalid-feedback">Price should be valid</div>
+          </div>
+
+          <div class="mb-2 col-md-8">
+            <label class="form-label">Country</label>
+            <select name="listing[country]" class="form-select form-select-sm" required>
+              <option value="" selected disabled>Select Country</option>
+            </select>
+             <div class="invalid-feedback"> Choose valid country name</div>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="mb-2">
+          <label class="form-label">Location</label>
+          <select name="listing[location]" class="form-select form-select-sm" required>
+            <option value="" selected disabled>Select Location</option>
+          </select>
+           <div class="invalid-feedback">Choose valid location</div>
+        </div>
+
+        <!-- Button -->
+        <div class="text-center mt-3">
+          <button type="submit" class="btn btn-danger btn-sm">
+            Add
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+
+<script>
+  const locations = {
+    India: ["Nagpur", "Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata"],
+    "United States": ["New York", "Los Angeles", "Chicago"],
+    "United Kingdom": ["London", "Manchester"],
+    Canada: ["Toronto", "Vancouver"],
+    Australia: ["Sydney", "Melbourne"],
+    Germany: ["Berlin", "Munich"],
+    France: ["Paris", "Nice"],
+    Italy: ["Rome", "Milan"],
+    Japan: ["Tokyo", "Osaka"],
+    UAE: ["Dubai", "Abu Dhabi"]
+  };
+
+  const countrySelect = document.querySelector("select[name='listing[country]']");
+  const locationSelect = document.querySelector("select[name='listing[location]']");
+
+  // Add countries dynamically
+  Object.keys(locations).forEach(country => {
+    const option = document.createElement("option");
+    option.value = country;
+    option.textContent = country;
+    countrySelect.appendChild(option);
+  });
+
+  // Update locations based on selected country
+  countrySelect.addEventListener("change", function () {
+    const selectedCountry = this.value;
+
+    locationSelect.innerHTML = '<option value="" selected disabled>Select Location</option>';
+
+    if (locations[selectedCountry]) {
+      locations[selectedCountry].forEach(loc => {
+        const option = document.createElement("option");
+        option.value = loc;
+        option.textContent = loc;
+        locationSelect.appendChild(option);
+      });
+    }
+  });
+</script>
