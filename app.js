@@ -186,9 +186,11 @@ app.use((err, req, res, next) => {
         message = "Something went wrong",
     } = err;
 
-    res.status(statusCode);
+    if (res.headersSent) {
+        return next(err);
+    }
 
-    res.render("error.ejs", {
+    res.status(statusCode).render("error.ejs", {
         message,
     });
 });
