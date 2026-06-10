@@ -1,39 +1,49 @@
 const express = require("express");
 const app = express();
+const session = require("express-session");
+const flash = require("connect-flash");
 const path = require("path");
 const fs = require("fs");
 
-// --- AUTOMATIC FILE CREATOR TO BYPASS RENDER FOLDER ERRORS ---
-const routesDir = path.join(__dirname, "routes");
-if (!fs.existsSync(routesDir)) {
-    fs.mkdirSync(routesDir, { recursive: true });
+// ============================================================
+// 🛠️ SMART ROUTE LOADER (Prevents Case-Sensitivity Crashes)
+// ============================================================
+let users, posts;
+
+try {
+  // Scenario 1: Try lowercase folder 'routes'
+  if (fs.existsSync(path.join(__dirname, "routes"))) {
+    users = fs.existsSync(path.join(__dirname, "routes", "user.js")) 
+      ? require("./routes/user.js") 
+      : require("./routes/User.js");
+
+    posts = fs.existsSync(path.join(__dirname, "routes", "post.js")) 
+      ? require("./routes/post.js") 
+      : require("./routes/Post.js");
+  } 
+  // Scenario 2: Fallback to capitalized folder 'Routes'
+  else {
+    users = fs.existsSync(path.join(__dirname, "Routes", "user.js")) 
+      ? require("./Routes/user.js") 
+      : require("./Routes/User.js");
+
+    posts = fs.existsSync(path.join(__dirname, "Routes", "post.js")) 
+      ? require("./Routes/post.js") 
+      : require("./Routes/Post.js");
+  }
+} catch (error) {
+  console.error("Error loading routes dynamically:", error.message);
 }
-const userRoutePath = path.join(routesDir, "user.js");
-const postRoutePath = path.join(routesDir, "post.js");
 
-const standardRouteContent = `
-const express = require("express");
-const router = express.Router();
-router.get("/", (req, res) => res.send("Route working"));
-module.exports = router;
-`;
-
-if (!fs.existsSync(userRoutePath)) fs.writeFileSync(userRoutePath, standardRouteContent);
-if (!fs.existsSync(postRoutePath)) fs.writeFileSync(postRoutePath, standardRouteContent);
-// -----------------------------------------------------------
-
-// Now Node will find them perfectly!
-const users = require("./routes/user.js");
-const posts = require("./routes/post.js");
-const session = require("express-session");
-const flash = require("connect-flash");
-
+// ============================================================
+// ⚙️ EXPRESS CONFIGURATION & MIDDLEWARE
+// ============================================================
 const sessionOptions = {
   secret: process.env.SESSION_SECRET || "mysupersecretstring",
   resave: false,
   saveUninitialized: true,
   cookie: {
-    maxAge: 7 * 24 * 60 * 60 * 1000
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week expiration
   }
 };
 
@@ -44,16 +54,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session(sessionOptions));
 app.use(flash());
 
+// Flash message middleware
 app.use((req, res, next) => {
   res.locals.successMsg = req.flash("success");
   res.locals.errorMsg = req.flash("error");
   next();
 });
 
-// Use the routes so express registers them
-app.use("/users", users);
-app.use("/posts", posts);
+// Register the imported routes
+if (users) app.use("/users", users);
+if (posts) app.use("/posts", posts);
 
+// ============================================================
+// 🛣️ CORE APPLICATION ROUTES
+// ============================================================
 app.get("/register", (req, res) => {
   let { name = "anonymous" } = req.query;
   req.session.name = name;
@@ -64,7 +78,7 @@ app.get("/register", (req, res) => {
     req.flash("success", "user registered successfully!");
   }
   
-  console.log(req.session.name);
+  console.log("Current Session User:", req.session.name);
   res.redirect("/hello");
 });
 
@@ -72,7 +86,10 @@ app.get("/hello", (req, res) => {
   res.render("page.ejs", { name: req.session.name });
 });
 
+// ============================================================
+// 🚀 DYNAMIC PORT FOR RENDER DEPLOYMENT
+// ============================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
+  console.log(`Server successfully listening on port ${PORT}`);
 });
