@@ -12,7 +12,7 @@ const ejsMate = require("ejs-mate");
 const cors = require("cors"); // ✅ Added CORS support for frontend connectivity
 const ExpressError = require("./utils/ExpressError.js");
 const wrapAsync = require("./utils/wrapAsync.js");
-const Review = require("./models/review.js");
+//const Review = require("./models/review.js");
 const { listingSchema, reviewSchema } = require("./schema.js");
 
 const session = require("express-session");
@@ -32,7 +32,7 @@ const bookingRoutes = require("./routes/booking.js");
 // ✅ Uses Render environment variable or falls back to local database
 const MONGO_URL = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/rental";
 
-const Listing = require("./models/listing.js");
+//const Listing = require("./models/listing.js");
 main().then(() => {
     console.log("Connected to MongoDB Atlas successfully! 🌱");
 }).catch(err => {
