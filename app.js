@@ -65,7 +65,7 @@ const store = MongoStore.create({
     crypto: {
         secret: process.env.SESSION_SECRET,
     },
-    touchAfter: 24 * 3600, // reduces session DB writes
+    touchAfter: 24 * 3600,
 });
 
 store.on("error", (err) => {
@@ -79,15 +79,13 @@ const sessionOptions = {
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: true, // REQUIRED for Render HTTPS
-        expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+        secure: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
     },
 };
 
 app.use(session(sessionOptions));
 app.use(flash());
-
 // ======================================================
 // PASSPORT CONFIG
 // ======================================================
