@@ -60,31 +60,20 @@ app.use(express.static(path.join(__dirname, "public")));
 // SESSION STORE (FIXED FOR RENDER)
 // ======================================================
 
-const store = MongoStore.create({
-    mongoUrl: process.env.ATLASDB_URL,
-    crypto: {
-        secret: process.env.SESSION_SECRET,
-    },
-    touchAfter: 24 * 3600,
-});
 
-store.on("error", (err) => {
-    console.log("SESSION STORE ERROR", err);
-});
+   app.use(
+    session({
+        secret: process.env.SESSION_SECRET || "mysupersecretcode",
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            httpOnly: true,
+            secure: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        },
+    })
+);
 
-const sessionOptions = {
-    store,
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        secure: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-    },
-};
-
-app.use(session(sessionOptions));
 app.use(flash());
 // ======================================================
 // PASSPORT CONFIG
