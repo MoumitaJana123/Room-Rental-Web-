@@ -31,7 +31,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 
 // ======================================================
-// DATABASE CONNECTION STRING
+// DATABASE URL
 // ======================================================
 
 const MONGO_URL =
@@ -57,14 +57,15 @@ app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
 // ======================================================
-// SESSION STORE
+// SESSION STORE (FIXED FOR RENDER)
 // ======================================================
 
 const store = MongoStore.create({
-    mongoUrl: MONGO_URL,
+    mongoUrl: process.env.ATLASDB_URL,
     crypto: {
-        secret: process.env.SESSION_SECRET || "mysupersecretcode",
+        secret: process.env.SESSION_SECRET,
     },
+    touchAfter: 24 * 3600, // reduces session DB writes
 });
 
 store.on("error", (err) => {
@@ -73,11 +74,12 @@ store.on("error", (err) => {
 
 const sessionOptions = {
     store,
-    secret: process.env.SESSION_SECRET || "mysupersecretcode",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
+        secure: true, // REQUIRED for Render HTTPS
         expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
         maxAge: 7 * 24 * 60 * 60 * 1000,
     },
@@ -123,11 +125,13 @@ app.get("/", (req, res) => {
 });
 
 // ======================================================
-// 404 HANDLER
+// 404 HANDLER (SAFE VERSION)
 // ======================================================
 
-app.use((req, res, next) => {
-    next(new ExpressError(404, "Page Not Found"));
+app.use((req, res) => {
+    res.status(404).render("error.ejs", {
+        message: "Page Not Found",
+    });
 });
 
 // ======================================================
@@ -145,12 +149,11 @@ app.use((err, req, res, next) => {
 });
 
 // ======================================================
-// SERVER START (IMPORTANT FIX FOR RENDER)
+// SERVER START (RENDER SAFE)
 // ======================================================
 
 const PORT = process.env.PORT || 8080;
 
-// IMPORTANT: start server ONLY after MongoDB connects
 mongoose
     .connect(MONGO_URL)
     .then(() => {
@@ -165,7 +168,7 @@ mongoose
     });
 
 // ======================================================
-// DEBUG HELP (OPTIONAL BUT USEFUL)
+// DEBUG (OPTIONAL)
 // ======================================================
 
 process.on("uncaughtException", (err) => {
